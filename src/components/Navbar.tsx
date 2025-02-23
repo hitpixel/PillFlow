@@ -22,7 +22,12 @@ const Navbar = () => {
   return (
     <div className="border-b bg-white">
       <div className="flex h-16 items-center px-4 max-w-[1512px] mx-auto">
-        <div className="font-semibold text-xl">Webster Pack</div>
+        <div className="flex items-center">
+          <div className="flex items-center gap-3">
+            <img src="/logo.png" alt="PillFlow" className="h-10 w-10" />
+            <span className="font-bold text-2xl">PillFlow</span>
+          </div>
+        </div>
         <div className="flex-1" />
         <div className="flex items-center gap-4">
           <DropdownMenu>

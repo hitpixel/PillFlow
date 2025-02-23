@@ -4,6 +4,9 @@ import WebsterPackList from "./WebsterPackList";
 import StatusDashboard from "./StatusDashboard";
 import { database } from "../lib/database";
 import Navbar from "./Navbar";
+import CustomerNotes from "./CustomerNotes";
+import { useAuth } from "./auth/AuthProvider";
+import { usePageTitle } from "../hooks/usePageTitle";
 
 interface Customer {
   id: string;
@@ -21,7 +24,10 @@ interface WebsterPack {
 }
 
 const Home = () => {
+  usePageTitle("Dashboard");
+  const { user } = useAuth();
   const [selectedCustomers, setSelectedCustomers] = useState<Customer[]>([]);
+  const [profile, setProfile] = useState<{ first_name: string } | null>(null);
   const [scanHistory, setScanHistory] = useState<
     Array<{
       id: string;
@@ -32,6 +38,21 @@ const Home = () => {
       staffInitials: string;
     }>
   >([]);
+
+  // Load user profile
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (user) {
+        try {
+          const profileData = await database.profiles.get(user.id);
+          setProfile(profileData);
+        } catch (err) {
+          console.error("Failed to load profile:", err);
+        }
+      }
+    };
+    loadProfile();
+  }, [user]);
 
   // Load scan history on mount
   useEffect(() => {
@@ -95,14 +116,25 @@ const Home = () => {
     }
   };
 
+  // Get greeting based on time of day
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 18) return "Good afternoon";
+    return "Good evening";
+  };
+
   return (
     <div className="min-h-screen bg-slate-50">
       <Navbar />
       <div className="p-6 space-y-6">
         <div className="max-w-[1512px] mx-auto space-y-6">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Webster Pack Management
-          </h1>
+          <div className="space-y-1">
+            <h1 className="text-3xl font-bold text-gray-900">
+              {getGreeting()}, {profile?.first_name || "there"} 👋
+            </h1>
+            <p className="text-gray-500">Welcome to your PillFlow dashboard</p>
+          </div>
 
           <CustomerSearch
             onCustomerSelect={handleCustomerSelect}
@@ -113,11 +145,18 @@ const Home = () => {
           {selectedCustomers.length > 0 && (
             <div className="space-y-6">
               <StatusDashboard scanHistory={scanHistory} />
-              <WebsterPackList
-                onScan={handleBarcodeScan}
-                selectedCustomer={selectedCustomers[0]?.name}
-                scanHistory={scanHistory}
-              />
+              <div className="flex gap-6">
+                <div className="flex-[3]">
+                  <WebsterPackList
+                    onScan={handleBarcodeScan}
+                    selectedCustomer={selectedCustomers[0]?.name}
+                    scanHistory={scanHistory}
+                  />
+                </div>
+                <div className="flex-1">
+                  <CustomerNotes customerId={selectedCustomers[0]?.id} />
+                </div>
+              </div>
             </div>
           )}
 
@@ -125,7 +164,7 @@ const Home = () => {
             <div className="flex items-center justify-center h-[400px] bg-white rounded-lg border border-dashed border-gray-300">
               <div className="text-center text-gray-500">
                 <p className="text-lg">
-                  Select a customer to view webster packs
+                  Select a customer to view medication packs
                 </p>
                 <p className="text-sm">
                   Use the search above to find a customer

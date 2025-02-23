@@ -6,8 +6,10 @@ import { Button } from "../ui/button";
 import { Label } from "../ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { supabase } from "@/lib/supabase";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 export default function Login() {
+  usePageTitle("Login");
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -109,7 +111,12 @@ export default function Login() {
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md p-6 bg-white">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Webster Pack</h1>
+          <div className="flex justify-center">
+            <div className="flex flex-col items-center gap-3">
+              <img src="/logo.png" alt="PillFlow" className="h-16 w-16" />
+              <h1 className="text-3xl font-bold">PillFlow</h1>
+            </div>
+          </div>
           <p className="text-sm text-gray-500 mt-2">Welcome back</p>
         </div>
 

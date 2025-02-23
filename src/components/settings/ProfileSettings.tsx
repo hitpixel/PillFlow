@@ -5,6 +5,7 @@ import { Button } from "../ui/button";
 import { Label } from "../ui/label";
 import { useAuth } from "../auth/AuthProvider";
 import { supabase } from "@/lib/supabase";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 interface Profile {
   id: string;
@@ -16,6 +17,7 @@ interface Profile {
 }
 
 export default function ProfileSettings() {
+  usePageTitle("Settings");
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState<Profile>({

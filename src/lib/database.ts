@@ -2,6 +2,58 @@ import { supabase } from "./supabase";
 import { Customer, WebsterPackScan, Profile } from "../types/database";
 
 export const database = {
+  notes: {
+    async getByCustomerId(customerId: string) {
+      const { data, error } = await supabase
+        .from("customer_notes")
+        .select("*")
+        .eq("customer_id", customerId)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+
+    async create(note: {
+      customer_id: string;
+      content: string;
+      is_completed: boolean;
+    }) {
+      const { data, error } = await supabase
+        .from("customer_notes")
+        .insert([note])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+
+    async update(
+      noteId: string,
+      updates: { is_completed?: boolean; content?: string },
+    ) {
+      const { data, error } = await supabase
+        .from("customer_notes")
+        .update(updates)
+        .eq("id", noteId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+
+    async delete(noteId: string) {
+      const { error } = await supabase
+        .from("customer_notes")
+        .delete()
+        .eq("id", noteId);
+
+      if (error) throw error;
+    },
+  },
+
   customers: {
     async getAll() {
       const { data, error } = await supabase
