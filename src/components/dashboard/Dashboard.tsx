@@ -1,37 +1,47 @@
 import React from "react";
 import { Card } from "../ui/card";
 import { usePageTitle } from "@/hooks/usePageTitle";
+import { useDashboardStats } from "@/hooks/useDashboardStats";
 import Navbar from "../Navbar";
 import { BarChart, Activity, Users, Calendar } from "lucide-react";
+import { Skeleton } from "../ui/skeleton";
 
 const Dashboard = () => {
   usePageTitle("Dashboard");
+  const {
+    totalPatients,
+    totalCollections,
+    collectionRate,
+    dueThisWeek,
+    loading,
+    error,
+  } = useDashboardStats();
 
   const stats = [
     {
       title: "Total Collections",
-      value: "1,234",
-      change: "+12.3%",
+      value: loading ? "--" : totalCollections.toLocaleString(),
+      change: "Total",
       icon: BarChart,
       color: "blue",
     },
     {
       title: "Active Customers",
-      value: "456",
-      change: "+5.2%",
+      value: loading ? "--" : totalPatients.toLocaleString(),
+      change: "Total",
       icon: Users,
       color: "green",
     },
     {
       title: "Due Today",
-      value: "23",
+      value: loading ? "--" : dueThisWeek.toLocaleString(),
       change: "-2.1%",
       icon: Calendar,
       color: "orange",
     },
     {
       title: "Collection Rate",
-      value: "98.2%",
+      value: loading ? "--" : `${collectionRate}%`,
       change: "+1.1%",
       icon: Activity,
       color: "purple",
@@ -55,24 +65,32 @@ const Dashboard = () => {
               const Icon = stat.icon;
               return (
                 <Card key={stat.title} className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div className={`p-2 bg-${stat.color}-100 rounded-lg`}>
-                      <Icon className={`h-5 w-5 text-${stat.color}-600`} />
+                  {error ? (
+                    <div className="text-red-500 text-sm">
+                      Failed to load data
                     </div>
-                    <span
-                      className={`text-sm font-medium ${stat.change.startsWith("+") ? "text-green-600" : "text-red-600"}`}
-                    >
-                      {stat.change}
-                    </span>
-                  </div>
-                  <div className="mt-4">
-                    <h3 className="text-sm font-medium text-gray-500">
-                      {stat.title}
-                    </h3>
-                    <p className="text-2xl font-semibold text-gray-900">
-                      {stat.value}
-                    </p>
-                  </div>
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-between">
+                        <div className={`p-2 bg-${stat.color}-100 rounded-lg`}>
+                          <Icon className={`h-5 w-5 text-${stat.color}-600`} />
+                        </div>
+                        <span
+                          className={`text-sm font-medium ${stat.change.startsWith("+") ? "text-green-600" : "text-red-600"}`}
+                        >
+                          {stat.change}
+                        </span>
+                      </div>
+                      <div className="mt-4">
+                        <h3 className="text-sm font-medium text-gray-500">
+                          {stat.title}
+                        </h3>
+                        <p className="text-2xl font-semibold text-gray-900">
+                          {stat.value}
+                        </p>
+                      </div>
+                    </>
+                  )}
                 </Card>
               );
             })}
