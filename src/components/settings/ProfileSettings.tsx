@@ -56,9 +56,11 @@ export default function ProfileSettings() {
         // Get existing profile
         const { data: existingProfile, error: profileError } = await supabase
           .from("profiles")
-          .select()
+          .select("*")
           .eq("id", session.user.id)
-          .maybeSingle();
+          .single();
+
+        console.log("Existing profile:", existingProfile); // Debug log
 
         if (profileError) {
           console.error("Profile error:", profileError);
@@ -68,27 +70,58 @@ export default function ProfileSettings() {
         // Extract names from various sources
         const metadata = session.user.user_metadata;
         const identity = session.user.identities?.[0]?.identity_data;
+        const provider = session.user.app_metadata?.provider;
 
-        // Try different name sources in order of preference
-        const firstName =
-          existingProfile?.first_name ||
-          metadata?.given_name ||
-          metadata?.first_name ||
-          identity?.given_name ||
-          identity?.first_name ||
-          metadata?.name?.split(" ")[0] ||
-          identity?.name?.split(" ")[0] ||
-          "";
+        let firstName = existingProfile?.first_name || "";
+        let lastName = existingProfile?.last_name || "";
 
-        const lastName =
-          existingProfile?.last_name ||
-          metadata?.family_name ||
-          metadata?.last_name ||
-          identity?.family_name ||
-          identity?.last_name ||
-          metadata?.name?.split(" ").slice(1).join(" ") ||
-          identity?.name?.split(" ").slice(1).join(" ") ||
-          "";
+        // If no existing profile names, try to get from OAuth data
+        if (!firstName || !lastName) {
+          if (provider === "google") {
+            firstName =
+              metadata?.given_name ||
+              identity?.given_name ||
+              metadata?.name?.split(" ")[0] ||
+              "";
+            lastName =
+              metadata?.family_name ||
+              identity?.family_name ||
+              metadata?.name?.split(" ").slice(1).join(" ") ||
+              "";
+          } else if (provider === "microsoft") {
+            firstName =
+              metadata?.given_name ||
+              identity?.given_name ||
+              metadata?.name?.split(" ")[0] ||
+              "";
+            lastName =
+              metadata?.surname ||
+              metadata?.family_name ||
+              identity?.family_name ||
+              metadata?.name?.split(" ").slice(1).join(" ") ||
+              "";
+          } else {
+            // Handle email/password or other providers
+            const nameParts = metadata?.name?.split(" ") || [];
+            firstName = metadata?.first_name || nameParts[0] || "";
+            lastName =
+              metadata?.last_name || nameParts.slice(1).join(" ") || "";
+          }
+        }
+
+        // If we got new names from OAuth, update the profile
+        if (firstName || lastName) {
+          const { error: updateError } = await supabase.auth.updateUser({
+            data: {
+              first_name: firstName,
+              last_name: lastName,
+            },
+          });
+
+          if (updateError) {
+            console.error("Error updating user metadata:", updateError);
+          }
+        }
 
         const profileData = {
           id: session.user.id,
