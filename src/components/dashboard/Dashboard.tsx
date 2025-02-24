@@ -4,12 +4,17 @@ import CollectionsGraph from "./CollectionsGraph";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import Navbar from "../Navbar";
-import { BarChart, Activity, Users, Calendar } from "lucide-react";
+import {
+  BarChart,
+  Activity,
+  Users,
+  Calendar as CalendarIcon,
+} from "lucide-react";
 import { DateRange } from "react-day-picker";
 import { format, subDays } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar } from "../ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 
 const Dashboard = () => {
@@ -48,7 +53,7 @@ const Dashboard = () => {
       title: "Due This Week",
       value: loading ? "--" : dueThisWeek.toLocaleString(),
       change: "This Week",
-      icon: Calendar,
+      icon: CalendarIcon,
       color: "orange",
     },
     {
