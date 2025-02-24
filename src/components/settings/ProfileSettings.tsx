@@ -34,23 +34,37 @@ export default function ProfileSettings() {
 
   useEffect(() => {
     const initializeProfile = async () => {
-      if (!user) return;
-
       try {
         setLoading(true);
 
         // Get fresh session data
         const {
           data: { session },
+          error: sessionError,
         } = await supabase.auth.getSession();
-        if (!session?.user) return;
+        if (sessionError) {
+          console.error("Session error:", sessionError);
+          navigate("/login");
+          return;
+        }
+
+        if (!session?.user) {
+          navigate("/login");
+          return;
+        }
 
         // Get existing profile
-        const { data: existingProfile } = await supabase
+        const { data: existingProfile, error: profileError } = await supabase
           .from("profiles")
           .select("*")
-          .eq("id", user.id)
+          .eq("id", session.user.id)
           .single();
+
+        // Don't throw on not found error
+        if (profileError && profileError.code !== "PGRST116") {
+          console.error("Profile error:", profileError);
+          throw profileError;
+        }
 
         // Extract names from various sources
         const metadata = session.user.user_metadata;
@@ -63,8 +77,8 @@ export default function ProfileSettings() {
           metadata?.first_name ||
           identity?.given_name ||
           identity?.first_name ||
-          identity?.name?.split(" ")[0] ||
           metadata?.name?.split(" ")[0] ||
+          identity?.name?.split(" ")[0] ||
           "";
 
         const lastName =
@@ -73,12 +87,12 @@ export default function ProfileSettings() {
           metadata?.last_name ||
           identity?.family_name ||
           identity?.last_name ||
-          identity?.name?.split(" ").slice(1).join(" ") ||
           metadata?.name?.split(" ").slice(1).join(" ") ||
+          identity?.name?.split(" ").slice(1).join(" ") ||
           "";
 
         const profileData = {
-          id: user.id,
+          id: session.user.id,
           first_name: firstName,
           last_name: lastName,
           pharmacy_name: existingProfile?.pharmacy_name || "",
@@ -91,17 +105,28 @@ export default function ProfileSettings() {
 
         // If no existing profile, create one
         if (!existingProfile) {
-          await supabase.from("profiles").upsert(profileData);
+          const { error: upsertError } = await supabase
+            .from("profiles")
+            .upsert(profileData);
+
+          if (upsertError) {
+            console.error("Profile creation error:", upsertError);
+            throw upsertError;
+          }
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error initializing profile:", error);
+        // Only redirect on auth errors, not on profile errors
+        if (error?.status === 401 || error?.message?.includes("JWT")) {
+          navigate("/login");
+        }
       } finally {
         setLoading(false);
       }
     };
 
     initializeProfile();
-  }, [user]);
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
