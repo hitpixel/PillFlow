@@ -109,6 +109,11 @@ const Dashboard = () => {
                   selected={dateRange}
                   onSelect={setDateRange}
                   numberOfMonths={2}
+                  disabled={(date) =>
+                    date > new Date() || date < new Date("2020-01-01")
+                  }
+                  fromDate={new Date("2020-01-01")}
+                  toDate={new Date()}
                 />
               </PopoverContent>
             </Popover>

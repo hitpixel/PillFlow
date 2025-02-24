@@ -7,7 +7,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { format } from "date-fns";
+import { format, eachDayOfInterval } from "date-fns";
 import { Card } from "../ui/card";
 
 interface CollectionsGraphProps {
@@ -21,6 +21,11 @@ const CollectionsGraph = ({ data = [] }: CollectionsGraphProps) => {
   const processedData = React.useMemo(() => {
     if (!data || data.length === 0) return [];
 
+    // Get the date range from the data
+    const dates = data.map((scan) => new Date(scan.collection_date));
+    const startDate = new Date(Math.min(...dates.map((d) => d.getTime())));
+    const endDate = new Date(Math.max(...dates.map((d) => d.getTime())));
+
     // Create a map of dates to collection counts
     const dailyCollections = data.reduce(
       (acc, scan) => {
@@ -31,25 +36,31 @@ const CollectionsGraph = ({ data = [] }: CollectionsGraphProps) => {
       {} as Record<string, number>,
     );
 
-    // Get the date range
-    const dates = Object.keys(dailyCollections).sort();
-    const startDate = new Date(dates[0]);
-    const endDate = new Date(dates[dates.length - 1]);
+    // Generate all dates in the range
+    const allDates = eachDayOfInterval({ start: startDate, end: endDate });
 
-    // Fill in missing dates with zero collections
-    const result = [];
-    const currentDate = new Date(startDate);
-    while (currentDate <= endDate) {
-      const dateStr = format(currentDate, "yyyy-MM-dd");
-      result.push({
+    // Create the final data array with zeros for missing dates
+    return allDates.map((date) => {
+      const dateStr = format(date, "yyyy-MM-dd");
+      return {
         date: dateStr,
         collections: dailyCollections[dateStr] || 0,
-      });
-      currentDate.setDate(currentDate.getDate() + 1);
-    }
-
-    return result;
+      };
+    });
   }, [data]);
+
+  if (processedData.length === 0) {
+    return (
+      <Card className="p-6 h-[400px]">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-lg font-semibold">Collections Over Time</h3>
+        </div>
+        <div className="h-[300px] flex items-center justify-center text-gray-500">
+          No data available for the selected date range
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <Card className="p-6 h-[400px]">
