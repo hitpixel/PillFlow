@@ -56,11 +56,9 @@ export default function ProfileSettings() {
         // Get existing profile
         const { data: existingProfile, error: profileError } = await supabase
           .from("profiles")
-          .select("*")
+          .select()
           .eq("id", session.user.id)
-          .single();
-
-        console.log("Existing profile:", existingProfile); // Debug log
+          .maybeSingle();
 
         if (profileError) {
           console.error("Profile error:", profileError);

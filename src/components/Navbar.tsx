@@ -13,23 +13,6 @@ import {
 const Navbar = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [profile, setProfile] = React.useState<{
-    first_name: string;
-    last_name: string;
-  } | null>(null);
-
-  React.useEffect(() => {
-    if (user?.id) {
-      supabase
-        .from("profiles")
-        .select("first_name, last_name")
-        .eq("id", user.id)
-        .single()
-        .then(({ data }) => {
-          if (data) setProfile(data);
-        });
-    }
-  }, [user?.id]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -62,7 +45,7 @@ const Navbar = () => {
             <DropdownMenuTrigger>
               <Avatar>
                 <AvatarFallback className="bg-blue-600 text-white">
-                  {profile?.first_name?.[0] || user?.email?.[0].toUpperCase()}
+                  {user?.email?.[0].toUpperCase()}
                 </AvatarFallback>
               </Avatar>
             </DropdownMenuTrigger>
