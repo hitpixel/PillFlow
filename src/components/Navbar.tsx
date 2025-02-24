@@ -41,7 +41,7 @@ const Navbar = () => {
             />
             <span className="font-bold text-2xl">PillFlow</span>
           </div>
-          <div className="flex items-center gap-6 mx-auto">
+          <div className="flex items-center gap-6 absolute left-1/2 -translate-x-1/2">
             <button
               onClick={() => navigate("/")}
               className="text-gray-600 hover:text-gray-900 transition-colors font-medium"

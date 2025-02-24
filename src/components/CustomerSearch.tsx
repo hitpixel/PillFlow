@@ -5,7 +5,7 @@ import { Button } from "./ui/button";
 import { ScrollArea } from "./ui/scroll-area";
 import { Avatar } from "./ui/avatar";
 import { Badge } from "./ui/badge";
-import { Search, User, Plus, Clock } from "lucide-react";
+import { Search, User, Plus, Clock, Edit2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -54,6 +54,7 @@ const CustomerSearch = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [formData, setFormData] = useState(initialFormState);
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
@@ -72,6 +73,33 @@ const CustomerSearch = ({
 
     loadCustomers();
   }, []);
+
+  const handleEditCustomer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCustomer) return;
+
+    try {
+      const updatedCustomer = await database.customers.update(
+        editingCustomer.id,
+        {
+          name: formData.name,
+          dob: formData.dob,
+          address: formData.address,
+        },
+      );
+
+      setCustomers(
+        customers.map((c) =>
+          c.id === updatedCustomer.id ? updatedCustomer : c,
+        ),
+      );
+      setEditingCustomer(null);
+      setFormData(initialFormState);
+    } catch (err) {
+      setError("Failed to update customer");
+      console.error(err);
+    }
+  };
 
   const handleAddCustomer = async () => {
     try {
@@ -166,6 +194,61 @@ const CustomerSearch = ({
               </div>
             </DialogContent>
           </Dialog>
+
+          <Dialog
+            open={!!editingCustomer}
+            onOpenChange={(open) => !open && setEditingCustomer(null)}
+          >
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Edit Customer</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleEditCustomer} className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-name">Full Name</Label>
+                  <Input
+                    id="edit-name"
+                    value={formData.name}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
+                    placeholder="John Smith"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-dob">Date of Birth</Label>
+                  <Input
+                    id="edit-dob"
+                    type="date"
+                    value={formData.dob}
+                    onChange={(e) =>
+                      setFormData({ ...formData, dob: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-address">Address</Label>
+                  <Input
+                    id="edit-address"
+                    value={formData.address}
+                    onChange={(e) =>
+                      setFormData({ ...formData, address: e.target.value })
+                    }
+                    placeholder="123 Main St, Sydney NSW 2000"
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  className="w-full mt-4"
+                  disabled={
+                    !formData.name || !formData.dob || !formData.address
+                  }
+                >
+                  Save Changes
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
             <Input
@@ -186,7 +269,11 @@ const CustomerSearch = ({
                 <div
                   key={customer.id}
                   className={`p-4 rounded-lg border cursor-pointer transition-colors ${selectedCustomers.some((c) => c.id === customer.id) ? "bg-blue-50 border-blue-200" : "border-gray-200 hover:bg-gray-50"}`}
-                  onClick={() => {
+                  onClick={(e) => {
+                    // Prevent clicking the card if clicking the edit button
+                    if ((e.target as HTMLElement).closest(".edit-button"))
+                      return;
+
                     const isSelected = selectedCustomers.some(
                       (c) => c.id === customer.id,
                     );
@@ -215,9 +302,26 @@ const CustomerSearch = ({
                           {customer.address}
                         </p>
                         {lastCollection && (
-                          <div className="flex items-center gap-1 text-xs text-gray-500">
-                            <Clock className="h-3 w-3" />
-                            {format(lastCollection, "MMM d, yyyy")}
+                          <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1 text-xs text-gray-500">
+                              <Clock className="h-3 w-3" />
+                              {format(lastCollection, "MMM d, yyyy")}
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 edit-button"
+                              onClick={() => {
+                                setFormData({
+                                  name: customer.name,
+                                  dob: customer.dob,
+                                  address: customer.address,
+                                });
+                                setEditingCustomer(customer);
+                              }}
+                            >
+                              <Edit2 className="h-3 w-3" />
+                            </Button>
                           </div>
                         )}
                       </div>

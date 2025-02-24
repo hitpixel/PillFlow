@@ -76,6 +76,18 @@ export const database = {
       return data;
     },
 
+    async update(customerId: string, updates: Partial<Customer>) {
+      const { data, error } = await supabase
+        .from("customers")
+        .update(updates)
+        .eq("id", customerId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+
     async create(customer: Omit<Customer, "id" | "created_at" | "user_id">) {
       const { data, error } = await supabase
         .from("customers")
