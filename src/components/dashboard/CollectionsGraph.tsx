@@ -19,6 +19,9 @@ interface CollectionsGraphProps {
 const CollectionsGraph = ({ data = [] }: CollectionsGraphProps) => {
   // Process data to get daily collections
   const processedData = React.useMemo(() => {
+    if (!data || data.length === 0) return [];
+
+    // Create a map of dates to collection counts
     const dailyCollections = data.reduce(
       (acc, scan) => {
         const date = format(new Date(scan.collection_date), "yyyy-MM-dd");
@@ -28,12 +31,24 @@ const CollectionsGraph = ({ data = [] }: CollectionsGraphProps) => {
       {} as Record<string, number>,
     );
 
-    return Object.entries(dailyCollections)
-      .map(([date, collections]) => ({
-        date,
-        collections,
-      }))
-      .sort((a, b) => a.date.localeCompare(b.date));
+    // Get the date range
+    const dates = Object.keys(dailyCollections).sort();
+    const startDate = new Date(dates[0]);
+    const endDate = new Date(dates[dates.length - 1]);
+
+    // Fill in missing dates with zero collections
+    const result = [];
+    const currentDate = new Date(startDate);
+    while (currentDate <= endDate) {
+      const dateStr = format(currentDate, "yyyy-MM-dd");
+      result.push({
+        date: dateStr,
+        collections: dailyCollections[dateStr] || 0,
+      });
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    return result;
   }, [data]);
 
   return (
