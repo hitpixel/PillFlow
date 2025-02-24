@@ -17,7 +17,7 @@ interface StatusOverviewProps {
   scanHistory?: ScanHistory[];
 }
 
-const StatusOverview = ({ scanHistory = [] }: StatusDashboardProps) => {
+const StatusOverview = ({ scanHistory = [] }: StatusOverviewProps) => {
   const lastCollection =
     scanHistory.length > 0
       ? scanHistory.reduce((latest, scan) =>

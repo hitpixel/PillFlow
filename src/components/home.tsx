@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import CustomerSearch from "./CustomerSearch";
 import WebsterPackList from "./WebsterPackList";
-import StatusDashboard from "./StatusDashboard";
+import StatusOverview from "./StatusOverview";
 import { database } from "../lib/database";
 import Navbar from "./Navbar";
 import CustomerNotes from "./CustomerNotes";
@@ -24,7 +24,7 @@ interface WebsterPack {
 }
 
 const Home = () => {
-  usePageTitle("Dashboard");
+  usePageTitle("Home");
   const { user } = useAuth();
   const [selectedCustomers, setSelectedCustomers] = useState<Customer[]>([]);
   const [profile, setProfile] = useState<{ first_name: string } | null>(null);
@@ -144,7 +144,7 @@ const Home = () => {
 
           {selectedCustomers.length > 0 && (
             <div className="space-y-6">
-              <StatusDashboard scanHistory={scanHistory} />
+              <StatusOverview scanHistory={scanHistory} />
               <div className="flex gap-6">
                 <div className="flex-[3]">
                   <WebsterPackList

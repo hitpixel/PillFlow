@@ -41,12 +41,20 @@ const Navbar = () => {
             />
             <span className="font-bold text-2xl">PillFlow</span>
           </div>
-          <button
-            onClick={() => navigate("/")}
-            className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
-          >
-            Home
-          </button>
+          <div className="flex items-center gap-6">
+            <button
+              onClick={() => navigate("/")}
+              className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
+            >
+              Home
+            </button>
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
+            >
+              Dashboard
+            </button>
+          </div>
         </div>
         <div className="flex-1" />
         <div className="flex items-center gap-4">
