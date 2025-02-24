@@ -1,14 +1,24 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card } from "../ui/card";
 import CollectionsGraph from "./CollectionsGraph";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import Navbar from "../Navbar";
 import { BarChart, Activity, Users, Calendar } from "lucide-react";
-import { Skeleton } from "../ui/skeleton";
+import { DateRange } from "react-day-picker";
+import { format, subDays } from "date-fns";
+import { cn } from "@/lib/utils";
+import { Button } from "../ui/button";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 
 const Dashboard = () => {
   usePageTitle("Dashboard");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: subDays(new Date(), 30),
+    to: new Date(),
+  });
+
   const {
     totalPatients,
     totalCollections,
@@ -17,7 +27,7 @@ const Dashboard = () => {
     scans,
     loading,
     error,
-  } = useDashboardStats();
+  } = useDashboardStats(dateRange);
 
   const stats = [
     {
@@ -55,11 +65,48 @@ const Dashboard = () => {
       <Navbar />
       <div className="p-6 space-y-6">
         <div className="max-w-[1512px] mx-auto space-y-6">
-          <div className="space-y-1">
-            <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-            <p className="text-gray-500">
-              Overview of your pharmacy's performance
-            </p>
+          <div className="flex justify-between items-center">
+            <div className="space-y-1">
+              <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+              <p className="text-gray-500">
+                Overview of your pharmacy's performance
+              </p>
+            </div>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className={cn(
+                    "justify-start text-left font-normal",
+                    !dateRange && "text-muted-foreground",
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateRange?.from ? (
+                    dateRange.to ? (
+                      <>
+                        {format(dateRange.from, "LLL dd, y")} -{" "}
+                        {format(dateRange.to, "LLL dd, y")}
+                      </>
+                    ) : (
+                      format(dateRange.from, "LLL dd, y")
+                    )
+                  ) : (
+                    <span>Pick a date range</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <Calendar
+                  initialFocus
+                  mode="range"
+                  defaultMonth={dateRange?.from}
+                  selected={dateRange}
+                  onSelect={setDateRange}
+                  numberOfMonths={2}
+                />
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -77,9 +124,7 @@ const Dashboard = () => {
                         <div className={`p-2 bg-${stat.color}-100 rounded-lg`}>
                           <Icon className={`h-5 w-5 text-${stat.color}-600`} />
                         </div>
-                        <span
-                          className={`text-sm font-medium ${stat.change.startsWith("+") ? "text-green-600" : "text-red-600"}`}
-                        >
+                        <span className="text-sm font-medium text-gray-500">
                           {stat.change}
                         </span>
                       </div>

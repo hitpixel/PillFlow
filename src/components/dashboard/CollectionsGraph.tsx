@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   AreaChart,
   Area,
@@ -7,14 +7,8 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { format, subDays, startOfDay, addDays } from "date-fns";
+import { format } from "date-fns";
 import { Card } from "../ui/card";
-import { DateRange } from "react-day-picker";
-import { Calendar as CalendarIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Button } from "../ui/button";
-import { Calendar } from "../ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 
 interface CollectionsGraphProps {
   data: Array<{
@@ -23,76 +17,29 @@ interface CollectionsGraphProps {
 }
 
 const CollectionsGraph = ({ data = [] }: CollectionsGraphProps) => {
-  const [date, setDate] = useState<DateRange | undefined>({
-    from: subDays(new Date(), 30),
-    to: new Date(),
-  });
-
-  // Process data to get daily collections within selected date range
+  // Process data to get daily collections
   const processedData = React.useMemo(() => {
-    if (!date?.from || !date?.to) return [];
+    const dailyCollections = data.reduce(
+      (acc, scan) => {
+        const date = format(new Date(scan.collection_date), "yyyy-MM-dd");
+        acc[date] = (acc[date] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
 
-    const days = [];
-    let currentDate = startOfDay(date.from);
-    const endDate = startOfDay(date.to);
-
-    while (currentDate <= endDate) {
-      const collectionsOnDay = data.filter(
-        (scan) =>
-          startOfDay(new Date(scan.collection_date)).getTime() ===
-          currentDate.getTime(),
-      ).length;
-
-      days.push({
-        date: currentDate.toISOString(),
-        collections: collectionsOnDay,
-      });
-
-      currentDate = addDays(currentDate, 1);
-    }
-
-    return days;
-  }, [data, date]);
+    return Object.entries(dailyCollections)
+      .map(([date, collections]) => ({
+        date,
+        collections,
+      }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+  }, [data]);
 
   return (
     <Card className="p-6 h-[400px]">
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-lg font-semibold">Collections Over Time</h3>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant={"outline"}
-              className={cn(
-                "justify-start text-left font-normal",
-                !date && "text-muted-foreground",
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {date?.from ? (
-                date.to ? (
-                  <>
-                    {format(date.from, "LLL dd, y")} -{" "}
-                    {format(date.to, "LLL dd, y")}
-                  </>
-                ) : (
-                  format(date.from, "LLL dd, y")
-                )
-              ) : (
-                <span>Pick a date range</span>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="end">
-            <Calendar
-              initialFocus
-              mode="range"
-              defaultMonth={date?.from}
-              selected={date}
-              onSelect={setDate}
-              numberOfMonths={2}
-            />
-          </PopoverContent>
-        </Popover>
       </div>
 
       <div className="h-[300px]">

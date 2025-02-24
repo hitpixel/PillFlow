@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { startOfWeek, endOfWeek, isWithinInterval } from "date-fns";
+import { DateRange } from "react-day-picker";
 
 export interface DashboardStats {
   totalPatients: number;
@@ -14,12 +15,13 @@ export interface DashboardStats {
   error: string | null;
 }
 
-export const useDashboardStats = () => {
+export const useDashboardStats = (dateRange?: DateRange) => {
   const [stats, setStats] = useState<DashboardStats>({
     totalPatients: 0,
     totalCollections: 0,
     collectionRate: 0,
     dueThisWeek: 0,
+    scans: [],
     loading: true,
     error: null,
   });
@@ -37,12 +39,20 @@ export const useDashboardStats = () => {
         const totalPatients = customers?.length || 0;
 
         // Get all webster pack scans with customer info
-        const { data: scans, error: scansError } = await supabase.from(
-          "webster_pack_scans",
-        ).select(`
+        let query = supabase.from("webster_pack_scans").select(`
             *,
             customers (name)
           `);
+
+        // Apply date range filter if provided
+        if (dateRange?.from) {
+          query = query.gte("collection_date", dateRange.from.toISOString());
+        }
+        if (dateRange?.to) {
+          query = query.lte("collection_date", dateRange.to.toISOString());
+        }
+
+        const { data: scans, error: scansError } = await query;
 
         if (scansError) throw scansError;
 
@@ -63,8 +73,8 @@ export const useDashboardStats = () => {
             : 0;
 
         // Calculate packs due this week
-        const weekStart = startOfWeek(new Date());
-        const weekEnd = endOfWeek(new Date());
+        const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 }); // Start from Monday
+        const weekEnd = endOfWeek(new Date(), { weekStartsOn: 1 }); // End on Sunday
 
         const dueThisWeek =
           scans?.filter((scan) => {
@@ -95,7 +105,7 @@ export const useDashboardStats = () => {
     };
 
     fetchStats();
-  }, []);
+  }, [dateRange]);
 
   return stats;
 };
