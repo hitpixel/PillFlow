@@ -127,10 +127,10 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-slate-50">
       <Navbar />
-      <div className="p-6 space-y-6">
-        <div className="max-w-[1512px] mx-auto space-y-6">
+      <div className="p-8 space-y-8">
+        <div className="max-w-[1512px] mx-auto space-y-8">
           <div className="space-y-1">
-            <h1 className="text-3xl font-bold text-gray-900">Home</h1>
+            <h1 className="text-4xl font-bold text-gray-900">Home</h1>
             <p className="text-gray-500">
               {getGreeting()}, {profile?.first_name || "there"} 👋
             </p>
@@ -144,7 +144,10 @@ const Home = () => {
 
           {selectedCustomers.length > 0 && (
             <div className="space-y-6">
-              <StatusOverview scanHistory={scanHistory} />
+              <StatusOverview
+                scanHistory={scanHistory}
+                selectedCustomer={selectedCustomers[0]?.name}
+              />
               <div className="flex gap-6">
                 <div className="flex-[3]">
                   <WebsterPackList
