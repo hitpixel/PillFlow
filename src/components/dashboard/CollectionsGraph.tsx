@@ -9,35 +9,39 @@ import {
 } from "recharts";
 import { format, eachDayOfInterval } from "date-fns";
 import { Card } from "../ui/card";
+import { DateRange } from "react-day-picker";
 
 interface CollectionsGraphProps {
   data: Array<{
     collection_date: string;
   }>;
+  dateRange?: DateRange;
 }
 
-const CollectionsGraph = ({ data = [] }: CollectionsGraphProps) => {
+const CollectionsGraph = ({ data = [], dateRange }: CollectionsGraphProps) => {
   // Process data to get daily collections
   const processedData = React.useMemo(() => {
-    if (!data || data.length === 0) return [];
+    if (!dateRange?.from || !dateRange?.to) return [];
 
-    // Get the date range from the data
-    const dates = data.map((scan) => new Date(scan.collection_date));
-    const startDate = new Date(Math.min(...dates.map((d) => d.getTime())));
-    const endDate = new Date(Math.max(...dates.map((d) => d.getTime())));
-
-    // Create a map of dates to collection counts
+    // Create a map of dates to collection counts from the actual data
     const dailyCollections = data.reduce(
       (acc, scan) => {
-        const date = format(new Date(scan.collection_date), "yyyy-MM-dd");
-        acc[date] = (acc[date] || 0) + 1;
+        const scanDate = new Date(scan.collection_date);
+        // Only count collections within the selected date range
+        if (scanDate >= dateRange.from && scanDate <= dateRange.to) {
+          const dateStr = format(scanDate, "yyyy-MM-dd");
+          acc[dateStr] = (acc[dateStr] || 0) + 1;
+        }
         return acc;
       },
       {} as Record<string, number>,
     );
 
-    // Generate all dates in the range
-    const allDates = eachDayOfInterval({ start: startDate, end: endDate });
+    // Generate all dates in the selected range
+    const allDates = eachDayOfInterval({
+      start: dateRange.from,
+      end: dateRange.to,
+    });
 
     // Create the final data array with zeros for missing dates
     return allDates.map((date) => {
@@ -47,16 +51,16 @@ const CollectionsGraph = ({ data = [] }: CollectionsGraphProps) => {
         collections: dailyCollections[dateStr] || 0,
       };
     });
-  }, [data]);
+  }, [data, dateRange]);
 
-  if (processedData.length === 0) {
+  if (!dateRange?.from || !dateRange?.to) {
     return (
       <Card className="p-6 h-[400px]">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-lg font-semibold">Collections Over Time</h3>
         </div>
         <div className="h-[300px] flex items-center justify-center text-gray-500">
-          No data available for the selected date range
+          Please select a date range
         </div>
       </Card>
     );

@@ -154,7 +154,7 @@ const Dashboard = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <CollectionsGraph data={scans} />
+            <CollectionsGraph data={scans} dateRange={dateRange} />
             <Card className="p-6 h-[400px]">
               <h3 className="text-lg font-semibold mb-4">Customer Activity</h3>
               <div className="flex items-center justify-center h-full text-gray-500">
