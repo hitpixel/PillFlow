@@ -45,15 +45,15 @@ const StatusOverview = ({
   ).length;
 
   return (
-    <div className="w-full h-[140px] bg-white rounded-lg">
-      <div className="grid grid-cols-2 gap-6 p-6 h-full">
+    <div className="w-full h-[120px] bg-white">
+      <div className="grid grid-cols-2 gap-4 p-4 h-full">
         <Card className="p-4 flex items-center justify-between bg-orange-50">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-orange-100 rounded-full">
               <Clock className="h-6 w-6 text-orange-600" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-orange-900">Next Due</h3>
+              <h3 className="font-semibold text-orange-900">Next Due</h3>
               <p className="text-sm text-orange-700">
                 {upcomingDue
                   ? format(upcomingDue, "MMM d, yyyy")
@@ -72,9 +72,7 @@ const StatusOverview = ({
               <CheckCircle2 className="h-6 w-6 text-blue-600" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-blue-900">
-                Last Collection
-              </h3>
+              <h3 className="font-semibold text-blue-900">Last Collection</h3>
               <p className="text-sm text-blue-700">
                 {lastCollection
                   ? format(lastCollection, "MMM d, yyyy")

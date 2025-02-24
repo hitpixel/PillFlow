@@ -5,7 +5,7 @@ import { Button } from "./ui/button";
 import { ScrollArea } from "./ui/scroll-area";
 import { Avatar } from "./ui/avatar";
 import { Badge } from "./ui/badge";
-import { Search, User, Plus, Clock, Edit2 } from "lucide-react";
+import { Search, User, Plus, Edit2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -123,7 +123,7 @@ const CustomerSearch = ({
   );
 
   return (
-    <Card className="w-full max-w-[1512px] h-[600px] bg-white p-8">
+    <Card className="w-full max-w-[1512px] h-[600px] bg-white p-6">
       <div className="flex flex-col h-full gap-4">
         <div className="flex items-center gap-4">
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -251,70 +251,62 @@ const CustomerSearch = ({
         </div>
 
         <ScrollArea className="flex-1">
-          <div className="grid grid-cols-3 gap-6 p-2">
-            {filteredCustomers.map((customer) => {
-              const lastCollection = getLastCollection(customer.name);
-              return (
-                <div
-                  key={customer.id}
-                  className={`p-6 rounded-lg border cursor-pointer transition-colors ${selectedCustomers.some((c) => c.id === customer.id) ? "bg-blue-50 border-blue-200" : "border-gray-200 hover:bg-gray-50"}`}
-                  onClick={(e) => {
-                    // Prevent clicking the card if clicking the edit button
-                    if ((e.target as HTMLElement).closest(".edit-button"))
-                      return;
+          <div className="grid grid-cols-3 gap-4 p-2">
+            {filteredCustomers.map((customer) => (
+              <div
+                key={customer.id}
+                className={`p-4 rounded-lg border cursor-pointer transition-colors ${selectedCustomers.some((c) => c.id === customer.id) ? "bg-blue-50 border-blue-200" : "border-gray-200 hover:bg-gray-50"}`}
+                onClick={(e) => {
+                  // Prevent clicking the card if clicking the edit button
+                  if ((e.target as HTMLElement).closest(".edit-button")) return;
 
-                    const isSelected = selectedCustomers.some(
-                      (c) => c.id === customer.id,
-                    );
-                    const newSelection = isSelected
-                      ? selectedCustomers.filter((c) => c.id !== customer.id)
-                      : [...selectedCustomers, customer];
-                    onCustomerSelect(newSelection);
-                  }}
-                >
-                  <div className="flex items-center gap-3">
-                    <Avatar>
-                      <User className="h-5 w-5" />
-                    </Avatar>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-semibold text-gray-900">
-                          {customer.name}
-                        </h3>
-                        <Badge variant="secondary">
-                          {customer.activeWebsterPacks} Packs
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-gray-500 mt-1">
-                        DOB: {format(new Date(customer.dob), "MMM d, yyyy")}
+                  const isSelected = selectedCustomers.some(
+                    (c) => c.id === customer.id,
+                  );
+                  const newSelection = isSelected
+                    ? selectedCustomers.filter((c) => c.id !== customer.id)
+                    : [...selectedCustomers, customer];
+                  onCustomerSelect(newSelection);
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  <Avatar>
+                    <User className="h-5 w-5" />
+                  </Avatar>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-medium">{customer.name}</h3>
+                      <Badge variant="secondary">
+                        {customer.activeWebsterPacks} Packs
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-gray-500">DOB: {customer.dob}</p>
+                    <div className="flex justify-between items-center">
+                      <p className="text-sm text-gray-500 truncate">
+                        {customer.address}
                       </p>
-                      <div className="flex justify-between items-center">
-                        <p className="text-sm text-gray-500 truncate mt-2">
-                          {customer.address}
-                        </p>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6 edit-button"
-                            onClick={() => {
-                              setFormData({
-                                name: customer.name,
-                                dob: customer.dob,
-                                address: customer.address,
-                              });
-                              setEditingCustomer(customer);
-                            }}
-                          >
-                            <Edit2 className="h-3 w-3" />
-                          </Button>
-                        </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 edit-button"
+                          onClick={() => {
+                            setFormData({
+                              name: customer.name,
+                              dob: customer.dob,
+                              address: customer.address,
+                            });
+                            setEditingCustomer(customer);
+                          }}
+                        >
+                          <Edit2 className="h-3 w-3" />
+                        </Button>
                       </div>
                     </div>
                   </div>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
         </ScrollArea>
       </div>
