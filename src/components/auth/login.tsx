@@ -76,7 +76,7 @@ export default function Login() {
     }
   };
 
-  const handleSocialLogin = async (provider: "google" | "microsoft") => {
+  const handleSocialLogin = async (provider: "google" | "azure") => {
     try {
       setLoading(true);
       setError("");
@@ -85,13 +85,6 @@ export default function Login() {
         provider,
         options: {
           redirectTo: window.location.origin,
-          queryParams:
-            provider === "microsoft"
-              ? {
-                  prompt: "consent",
-                  response_type: "code",
-                }
-              : undefined,
         },
       });
 
@@ -286,7 +279,7 @@ export default function Login() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => handleSocialLogin("microsoft")}
+              onClick={() => handleSocialLogin("azure")}
               disabled={loading}
             >
               Microsoft
