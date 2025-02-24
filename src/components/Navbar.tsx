@@ -21,8 +21,8 @@ const Navbar = () => {
 
   return (
     <div className="border-b bg-white">
-      <div className="flex h-16 items-center px-4 max-w-[1512px] mx-auto">
-        <div className="flex items-center gap-8">
+      <div className="flex h-16 items-center justify-between px-4 max-w-[1512px] mx-auto">
+        <div className="flex items-center gap-8 flex-1">
           <div
             className="flex items-center gap-3 cursor-pointer"
             onClick={() => navigate("/")}
@@ -41,7 +41,7 @@ const Navbar = () => {
             />
             <span className="font-bold text-2xl">PillFlow</span>
           </div>
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-6 mx-auto">
             <button
               onClick={() => navigate("/")}
               className="text-gray-600 hover:text-gray-900 transition-colors font-medium"

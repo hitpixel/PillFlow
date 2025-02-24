@@ -1,5 +1,6 @@
 import React from "react";
 import { Card } from "../ui/card";
+import CollectionsGraph from "./CollectionsGraph";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import Navbar from "../Navbar";
@@ -13,6 +14,7 @@ const Dashboard = () => {
     totalCollections,
     collectionRate,
     dueThisWeek,
+    scans,
     loading,
     error,
   } = useDashboardStats();
@@ -33,16 +35,16 @@ const Dashboard = () => {
       color: "green",
     },
     {
-      title: "Due Today",
+      title: "Due This Week",
       value: loading ? "--" : dueThisWeek.toLocaleString(),
-      change: "-2.1%",
+      change: "This Week",
       icon: Calendar,
       color: "orange",
     },
     {
       title: "Collection Rate",
       value: loading ? "--" : `${collectionRate}%`,
-      change: "+1.1%",
+      change: "Overall",
       icon: Activity,
       color: "purple",
     },
@@ -96,16 +98,8 @@ const Dashboard = () => {
             })}
           </div>
 
-          {/* Placeholder for charts */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <Card className="p-6 h-[400px]">
-              <h3 className="text-lg font-semibold mb-4">
-                Collections Over Time
-              </h3>
-              <div className="flex items-center justify-center h-full text-gray-500">
-                Chart placeholder
-              </div>
-            </Card>
+            <CollectionsGraph data={scans} />
             <Card className="p-6 h-[400px]">
               <h3 className="text-lg font-semibold mb-4">Customer Activity</h3>
               <div className="flex items-center justify-center h-full text-gray-500">

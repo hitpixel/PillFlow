@@ -7,6 +7,9 @@ export interface DashboardStats {
   totalCollections: number;
   collectionRate: number;
   dueThisWeek: number;
+  scans: Array<{
+    collection_date: string;
+  }>;
   loading: boolean;
   error: string | null;
 }
@@ -77,6 +80,7 @@ export const useDashboardStats = () => {
           totalCollections,
           collectionRate: Math.round(collectionRate * 10) / 10, // Round to 1 decimal
           dueThisWeek,
+          scans: scans || [],
           loading: false,
           error: null,
         });
