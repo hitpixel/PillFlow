@@ -38,50 +38,60 @@ export default function ProfileSettings() {
 
       try {
         setLoading(true);
-        // First try to get existing profile
-        const { data: existingProfile, error } = await supabase
+
+        // Get fresh session data
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (!session?.user) return;
+
+        // Get existing profile
+        const { data: existingProfile } = await supabase
           .from("profiles")
           .select("*")
           .eq("id", user.id)
           .single();
 
-        // Get name from various sources
-        const metadata = user.user_metadata;
-        const identity = user.identities?.[0]?.identity_data;
-        const name = identity?.full_name || identity?.name || "";
-        const [firstName = "", ...lastNameParts] = name.split(" ");
-        const lastName = lastNameParts.join(" ");
+        // Extract names from various sources
+        const metadata = session.user.user_metadata;
+        const identity = session.user.identities?.[0]?.identity_data;
+
+        // Try different name sources in order of preference
+        const firstName =
+          existingProfile?.first_name ||
+          metadata?.given_name ||
+          metadata?.first_name ||
+          identity?.given_name ||
+          identity?.first_name ||
+          identity?.name?.split(" ")[0] ||
+          metadata?.name?.split(" ")[0] ||
+          "";
+
+        const lastName =
+          existingProfile?.last_name ||
+          metadata?.family_name ||
+          metadata?.last_name ||
+          identity?.family_name ||
+          identity?.last_name ||
+          identity?.name?.split(" ").slice(1).join(" ") ||
+          metadata?.name?.split(" ").slice(1).join(" ") ||
+          "";
 
         const profileData = {
           id: user.id,
-          first_name:
-            existingProfile?.first_name ||
-            metadata?.first_name ||
-            metadata?.given_name ||
-            identity?.given_name ||
-            firstName ||
-            "",
-          last_name:
-            existingProfile?.last_name ||
-            metadata?.last_name ||
-            metadata?.family_name ||
-            identity?.family_name ||
-            lastName ||
-            "",
+          first_name: firstName,
+          last_name: lastName,
           pharmacy_name: existingProfile?.pharmacy_name || "",
           pharmacy_address: existingProfile?.pharmacy_address || "",
           pharmacy_phone: existingProfile?.pharmacy_phone || "",
         };
 
+        // Update state
         setProfile(profileData);
 
         // If no existing profile, create one
         if (!existingProfile) {
-          const { error: upsertError } = await supabase
-            .from("profiles")
-            .upsert(profileData);
-
-          if (upsertError) throw upsertError;
+          await supabase.from("profiles").upsert(profileData);
         }
       } catch (error) {
         console.error("Error initializing profile:", error);
@@ -97,21 +107,24 @@ export default function ProfileSettings() {
     e.preventDefault();
     try {
       setLoading(true);
-      const { error } = await supabase.from("profiles").upsert({
-        id: user?.id,
+
+      // Update profile in database
+      const { error: profileError } = await supabase.from("profiles").upsert({
         ...profile,
         updated_at: new Date().toISOString(),
       });
 
-      if (error) throw error;
+      if (profileError) throw profileError;
 
-      // Also update user metadata
-      await supabase.auth.updateUser({
+      // Update user metadata
+      const { error: metadataError } = await supabase.auth.updateUser({
         data: {
           first_name: profile.first_name,
           last_name: profile.last_name,
         },
       });
+
+      if (metadataError) throw metadataError;
 
       alert("Profile updated successfully!");
     } catch (error) {
