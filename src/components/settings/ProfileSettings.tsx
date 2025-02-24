@@ -56,12 +56,11 @@ export default function ProfileSettings() {
         // Get existing profile
         const { data: existingProfile, error: profileError } = await supabase
           .from("profiles")
-          .select("*")
+          .select()
           .eq("id", session.user.id)
-          .single();
+          .maybeSingle();
 
-        // Don't throw on not found error
-        if (profileError && profileError.code !== "PGRST116") {
+        if (profileError) {
           console.error("Profile error:", profileError);
           throw profileError;
         }
@@ -98,22 +97,21 @@ export default function ProfileSettings() {
           pharmacy_name: existingProfile?.pharmacy_name || "",
           pharmacy_address: existingProfile?.pharmacy_address || "",
           pharmacy_phone: existingProfile?.pharmacy_phone || "",
+          updated_at: new Date().toISOString(),
         };
+
+        // Always upsert the profile
+        const { error: upsertError } = await supabase
+          .from("profiles")
+          .upsert(profileData);
+
+        if (upsertError) {
+          console.error("Profile upsert error:", upsertError);
+          throw upsertError;
+        }
 
         // Update state
         setProfile(profileData);
-
-        // If no existing profile, create one
-        if (!existingProfile) {
-          const { error: upsertError } = await supabase
-            .from("profiles")
-            .upsert(profileData);
-
-          if (upsertError) {
-            console.error("Profile creation error:", upsertError);
-            throw upsertError;
-          }
-        }
       } catch (error: any) {
         console.error("Error initializing profile:", error);
         // Only redirect on auth errors, not on profile errors
@@ -125,8 +123,10 @@ export default function ProfileSettings() {
       }
     };
 
-    initializeProfile();
-  }, [navigate]);
+    if (user?.id) {
+      initializeProfile();
+    }
+  }, [user?.id, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
