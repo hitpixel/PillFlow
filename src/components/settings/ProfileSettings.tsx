@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card } from "../ui/card";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
@@ -6,6 +7,7 @@ import { Label } from "../ui/label";
 import { useAuth } from "../auth/AuthProvider";
 import { supabase } from "@/lib/supabase";
 import { usePageTitle } from "@/hooks/usePageTitle";
+import { ArrowLeft } from "lucide-react";
 
 interface Profile {
   id: string;
@@ -18,6 +20,7 @@ interface Profile {
 
 export default function ProfileSettings() {
   usePageTitle("Settings");
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState<Profile>({
@@ -30,43 +33,86 @@ export default function ProfileSettings() {
   });
 
   useEffect(() => {
-    if (user) {
-      loadProfile();
-    }
+    const initializeProfile = async () => {
+      if (!user) return;
+
+      try {
+        setLoading(true);
+        // First try to get existing profile
+        const { data: existingProfile, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id)
+          .single();
+
+        // Get name from various sources
+        const metadata = user.user_metadata;
+        const identity = user.identities?.[0]?.identity_data;
+        const name = identity?.full_name || identity?.name || "";
+        const [firstName = "", ...lastNameParts] = name.split(" ");
+        const lastName = lastNameParts.join(" ");
+
+        const profileData = {
+          id: user.id,
+          first_name:
+            existingProfile?.first_name ||
+            metadata?.first_name ||
+            metadata?.given_name ||
+            identity?.given_name ||
+            firstName ||
+            "",
+          last_name:
+            existingProfile?.last_name ||
+            metadata?.last_name ||
+            metadata?.family_name ||
+            identity?.family_name ||
+            lastName ||
+            "",
+          pharmacy_name: existingProfile?.pharmacy_name || "",
+          pharmacy_address: existingProfile?.pharmacy_address || "",
+          pharmacy_phone: existingProfile?.pharmacy_phone || "",
+        };
+
+        setProfile(profileData);
+
+        // If no existing profile, create one
+        if (!existingProfile) {
+          const { error: upsertError } = await supabase
+            .from("profiles")
+            .upsert(profileData);
+
+          if (upsertError) throw upsertError;
+        }
+      } catch (error) {
+        console.error("Error initializing profile:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeProfile();
   }, [user]);
-
-  const loadProfile = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user?.id)
-        .single();
-
-      if (error) throw error;
-      if (data) setProfile(data);
-    } catch (error) {
-      console.error("Error loading profile:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       setLoading(true);
-      const { error } = await supabase
-        .from("profiles")
-        .upsert({
-          id: user?.id,
-          ...profile,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", user?.id);
+      const { error } = await supabase.from("profiles").upsert({
+        id: user?.id,
+        ...profile,
+        updated_at: new Date().toISOString(),
+      });
 
       if (error) throw error;
+
+      // Also update user metadata
+      await supabase.auth.updateUser({
+        data: {
+          first_name: profile.first_name,
+          last_name: profile.last_name,
+        },
+      });
+
       alert("Profile updated successfully!");
     } catch (error) {
       console.error("Error updating profile:", error);
@@ -78,6 +124,17 @@ export default function ProfileSettings() {
 
   return (
     <div className="min-h-screen bg-slate-50 p-6">
+      <div className="max-w-2xl mx-auto mb-4">
+        <Button
+          variant="ghost"
+          onClick={() => navigate("/")}
+          className="group flex items-center gap-2 hover:bg-slate-100 transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+          Return to Dashboard
+        </Button>
+      </div>
+
       <Card className="max-w-2xl mx-auto p-6 bg-white">
         <h1 className="text-2xl font-bold mb-6">Profile Settings</h1>
         <form onSubmit={handleSubmit} className="space-y-6">
