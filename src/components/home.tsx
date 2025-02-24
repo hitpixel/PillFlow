@@ -130,10 +130,10 @@ const Home = () => {
       <div className="p-6 space-y-6">
         <div className="max-w-[1512px] mx-auto space-y-6">
           <div className="space-y-1">
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-3xl font-bold text-gray-900">Home</h1>
+            <p className="text-gray-500">
               {getGreeting()}, {profile?.first_name || "there"} 👋
-            </h1>
-            <p className="text-gray-500">Welcome to your PillFlow dashboard</p>
+            </p>
           </div>
 
           <CustomerSearch
