@@ -24,7 +24,18 @@ const Navbar = () => {
       <div className="flex h-16 items-center px-4 max-w-[1512px] mx-auto">
         <div className="flex items-center">
           <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="PillFlow" className="h-10 w-10" />
+            <img
+              src="./logo.svg"
+              alt="PillFlow"
+              className="h-10 w-10"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                if (!target.dataset.tried) {
+                  target.dataset.tried = "true";
+                  target.src = "/logo.svg";
+                }
+              }}
+            />
             <span className="font-bold text-2xl">PillFlow</span>
           </div>
         </div>
