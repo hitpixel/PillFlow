@@ -15,5 +15,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     storageKey: "pillflow_auth",
     storage: window.localStorage,
     autoRefreshToken: true,
+    flowType: "pkce",
+    redirectTo: "https://app.pillflow.com.au",
+    authUrl: "https://auth.pillflow.com.au",
   },
 });

@@ -35,7 +35,7 @@ const Navbar = () => {
                 const target = e.target as HTMLImageElement;
                 if (!target.dataset.tried) {
                   target.dataset.tried = "true";
-                  target.src = "https://pillflow.com.au/logo.svg";
+                  target.src = "https://app.pillflow.com.au/logo.svg";
                 }
               }}
             />
