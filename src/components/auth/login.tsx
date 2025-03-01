@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "../ui/card";
 import { Input } from "../ui/input";
@@ -9,8 +9,21 @@ import { supabase } from "@/lib/supabase";
 import { usePageTitle } from "@/hooks/usePageTitle";
 
 export default function Login() {
-  usePageTitle("Login");
   const navigate = useNavigate();
+  usePageTitle("Login");
+
+  // Check if we're already logged in
+  useEffect(() => {
+    const checkSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session) {
+        navigate("/dashboard");
+      }
+    };
+    checkSession();
+  }, [navigate]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [loginData, setLoginData] = useState({
@@ -84,7 +97,8 @@ export default function Login() {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: window.location.origin,
+          redirectTo: `${window.location.origin}/dashboard`,
+          scopes: provider === "azure" ? "email profile openid" : undefined,
         },
       });
 

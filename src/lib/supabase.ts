@@ -16,7 +16,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     storage: window.localStorage,
     autoRefreshToken: true,
     flowType: "pkce",
-    redirectTo: "https://app.pillflow.com.au",
-    authUrl: "https://auth.pillflow.com.au",
+    redirectTo: `${window.location.origin}/dashboard`,
   },
 });
