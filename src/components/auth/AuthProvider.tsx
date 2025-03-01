@@ -12,15 +12,15 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
 });
 
-export const useAuth = () => {
+export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
-};
+}
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+function AuthProviderComponent({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -39,11 +39,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setLoading(false);
 
       // Handle auth state changes
-      if (event === "SIGNED_IN") {
-        // Redirect to dashboard on successful sign in
+      if (event === "SIGNED_IN" && window.location.pathname === "/login") {
+        // Only redirect if currently on login page
         window.location.href = "/dashboard";
-      } else if (event === "SIGNED_OUT") {
-        // Redirect to login on sign out
+      } else if (
+        event === "SIGNED_OUT" &&
+        window.location.pathname !== "/login"
+      ) {
+        // Only redirect if not already on login page
         window.location.href = "/login";
       }
     });
@@ -56,4 +59,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       {children}
     </AuthContext.Provider>
   );
-};
+}
+
+export const AuthProvider = AuthProviderComponent;
+export default AuthProviderComponent;

@@ -131,8 +131,12 @@ const Dashboard = () => {
                   ) : (
                     <>
                       <div className="flex items-center justify-between">
-                        <div className={`p-2 bg-${stat.color}-100 rounded-lg`}>
-                          <Icon className={`h-5 w-5 text-${stat.color}-600`} />
+                        <div
+                          className={`p-2 rounded-lg ${stat.color === "blue" ? "bg-blue-100" : stat.color === "green" ? "bg-green-100" : stat.color === "orange" ? "bg-orange-100" : "bg-purple-100"}`}
+                        >
+                          <Icon
+                            className={`h-5 w-5 ${stat.color === "blue" ? "text-blue-600" : stat.color === "green" ? "text-green-600" : stat.color === "orange" ? "text-orange-600" : "text-purple-600"}`}
+                          />
                         </div>
                         <span className="text-sm font-medium text-gray-500">
                           {stat.change}
